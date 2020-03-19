@@ -22,12 +22,14 @@ app.get("/", (req, res) => {
 });
 
 const db = require("./app/models");
-// db.sequelize.sync();                             // Production
-db.sequelize.sync({ force: true }).then(() => {     // Development
-    console.log("Drop and re-sync db.");
-});
+db.sequelize.sync();                                    // Production
+// db.sequelize.sync({ force: true }).then(() => {     // Development
+//     console.log("Drop and re-sync db.");
+// });
 
 require("./app/routes/user.routes")(app);
+require("./app/routes/news.routes")(app);
+require("./app/routes/shop.routes")(app);
 
 // set port, listen for requests
 const PORT = process.env.PORT || 8080;
