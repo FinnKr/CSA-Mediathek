@@ -1,4 +1,5 @@
 const db = require("../models");
+const bcyrpt =require("bcrypt");
 const User = db.users;
 const Op = db.Sequelize.Op;
 
@@ -12,21 +13,35 @@ exports.create = (req, res) => {
         return;
     }
 
-    // Create a User
-    const user = {
-        name: req.body.name,
-        mail: req.body.mail,
-        password: req.body.password
-    }
-
-    // Save User in database
-    User.create(user)
+    User.findAll({ where: { mail: req.body.mail }})
         .then(data => {
-            res.send(data);
+            if (data.length >= 1) {
+                res.status(422).send({
+                    message: "Mail already exists!"
+                });
+            } else {
+                // Create a User
+                const user = {
+                    name: req.body.name,
+                    mail: req.body.mail,
+                    password: req.body.password
+                }
+
+                // Save User in database
+                User.create(user)
+                    .then(data => {
+                        res.status(201).send(data);
+                    })
+                    .catch(err => {
+                        res.status(500).send({
+                            message: err.message || "Some internal error occured while creating the User"
+                        });
+                    });
+            }
         })
         .catch(err => {
             res.status(500).send({
-                message: err.message || "Some internal error occured while creating the User"
+                message: err.message || "Some internal error occured while checking the given Mail"
             });
         });
 };
