@@ -1,7 +1,9 @@
 const db = require("../models");
 const bcyrpt =require("bcrypt");
+const jwt = require("jsonwebtoken");
 const User = db.users;
 const Op = db.Sequelize.Op;
+const JWT_KEY = "4376/&fhj3/fbh";
 
 // Create and Save a new User
 exports.create = (req, res) => {
@@ -20,23 +22,31 @@ exports.create = (req, res) => {
                     message: "Mail already exists!"
                 });
             } else {
-                // Create a User
-                const user = {
-                    name: req.body.name,
-                    mail: req.body.mail,
-                    password: req.body.password
-                }
-
-                // Save User in database
-                User.create(user)
-                    .then(data => {
-                        res.status(201).send(data);
-                    })
-                    .catch(err => {
+                bcyrpt.hash(req.body.password, 10, (err, hash) => {
+                    if (err) {
                         res.status(500).send({
-                            message: err.message || "Some internal error occured while creating the User"
+                            message: err || "Some internal error occured while hashing the password"
                         });
-                    });
+                    } else {
+                        // Create a User
+                        const user = {
+                            name: req.body.name,
+                            mail: req.body.mail,
+                            password: hash
+                        }
+
+                        // Save User in database
+                        User.create(user)
+                        .then(data => {
+                            res.status(201).send(data);
+                        })
+                        .catch(err => {
+                            res.status(500).send({
+                                message: err.message || "Some internal error occured while creating the User"
+                            });
+                        });
+                    }
+                });
             }
         })
         .catch(err => {
@@ -148,20 +158,46 @@ exports.deleteAll = (req, res) => {
 
 // Login to user
 exports.login = (req, res) => {
-    const mail = req.body.mail;
-    const password = req.body.password;
-
-    User.findAll({ where: {  [Op.and]: [ 
-                                { mail: mail },
-                                { password: password} 
-        ]} })
-        .then( data => {
-            res.send(data);
+    User.findAll({ where: { mail: req.body.mail }})
+        .then(data => {
+            if (data.length < 1) {
+                res.status(401).send({
+                    message: "Auth failed"
+                });
+            } else {
+                bcyrpt.compare(req.body.password, data[0].password, (err, result) => {
+                    if (err) {
+                        res.status(401).send({
+                            message: "Auth failed"
+                        });
+                    } else {
+                        if (result) {
+                            const token = jwt.sign(
+                                {
+                                    mail: data[0].mail,
+                                    userId: data[0].id
+                                },
+                                JWT_KEY,
+                                {
+                                    expiresIn: "1h"
+                                }
+                            );
+                            res.status(200).send({
+                                message: "Auth successful",
+                                token: token
+                            });
+                        } else {
+                            res.status(401).send({
+                                message: "Auth failed"
+                            });
+                        }
+                    }
+                });
+            }
         })
         .catch(err => {
             res.status(500).send({
-                message:
-                    err.message || "Some error occurred while logging in."
-            });
+                message: err.message || "Some internal error occured"
+            })
         });
 };
