@@ -1,5 +1,6 @@
 module.exports = app => {
     const users = require("../controllers/user.controller.js");
+    const checkAuth = require("../middleware/check-auth.js");
 
     var router = require("express").Router();
 
@@ -7,19 +8,19 @@ module.exports = app => {
     router.post("/", users.create);
 
     // Retrieve all users with "name"
-    router.get("/", users.findAll);
+    router.get("/", checkAuth, users.findAll);
 
     // Retrieve a single User with id
-    router.get("/:id", users.findOne);
+    router.get("/:id", checkAuth, users.findOne);
 
     // Update a User with id
-    router.put("/:id", users.update);
+    router.put("/:id", checkAuth, users.update);
 
     // Delete a User with id
-    router.delete("/:id", users.delete);
+    router.delete("/:id", checkAuth, users.delete);
 
     // Delete all users
-    router.delete("/", users.deleteAll);
+    router.delete("/", checkAuth, users.deleteAll);
 
     // Login to existing user
     router.post("/login", users.login);

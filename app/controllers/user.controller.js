@@ -1,9 +1,9 @@
 const db = require("../models");
 const bcyrpt =require("bcrypt");
 const jwt = require("jsonwebtoken");
+const constants = require("../config/constants.js");
 const User = db.users;
 const Op = db.Sequelize.Op;
-const JWT_KEY = "4376/&fhj3/fbh";
 
 // Create and Save a new User
 exports.create = (req, res) => {
@@ -177,7 +177,7 @@ exports.login = (req, res) => {
                                     mail: data[0].mail,
                                     userId: data[0].id
                                 },
-                                JWT_KEY,
+                                constants.JWT_KEY,
                                 {
                                     expiresIn: "1h"
                                 }

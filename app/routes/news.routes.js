@@ -1,5 +1,6 @@
 module.exports = app => {
     const news = require("../controllers/news.controller.js");
+    const checkAuth = require("../middleware/check-auth.js");
 
     var router = require("express").Router();
 
@@ -7,7 +8,7 @@ module.exports = app => {
     router.get("/", news.findAll);
 
     // Create news
-    router.post("/", news.create);
+    router.post("/", checkAuth, news.create);
 
     app.use("/news", router);
 };
