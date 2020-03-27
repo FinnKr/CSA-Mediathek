@@ -22,5 +22,6 @@ db.sequelize = sequelize;
 db.users = require("./user.model.js")(sequelize, Sequelize);
 db.news = require("./news.model.js")(sequelize, Sequelize);
 db.shopentries = require("./shop.model.js")(sequelize, Sequelize);
+db.userlibentries = require("./userlibary.model.js")(sequelize, Sequelize);
 
 module.exports = db;
