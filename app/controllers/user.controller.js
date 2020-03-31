@@ -10,7 +10,7 @@ exports.create = (req, res) => {
     // Validate request
     if (!req.body.name || !req.body.mail || !req.body.password) {
         res.status(400).send({
-            message: "Content can not be empty!"
+            message: "Name, mail or password can not be empty!"
         });
         return;
     }
@@ -63,7 +63,7 @@ exports.findAll = (req, res) => {
 
     User.findAll({ where: condition })
         .then(data => {
-            res.send(data);
+            res.status(200).send(data);
         })
         .catch(err => {
             res.status(500).send({
@@ -79,7 +79,12 @@ exports.findOne = (req, res) => {
 
     User.findByPk(id)
         .then(data => {
-            res.send(data);
+            if (data.length < 1) {
+                res.status(404).send({
+                    message: "A user with the specified ID: " + id + " was not found"
+                });
+            }
+            res.status(200).send(data);
         })
         .catch(err => {
             res.status(500).send({
@@ -93,25 +98,47 @@ exports.findOne = (req, res) => {
 exports.update = (req, res) => {
     const id = req.params.id;
 
-    User.update(req.body, {
-        where: { id: id }
-    })
-        .then(num => {
-            if (num == 1) {
-                res.send({
-                    message: "User was updated successfully."
+    if (!req.body.name || !req.body.mail || !req.body.password){
+        res.status(400).send({
+            message: "Content cannot be empty"
+        });
+    } else {
+        bcyrpt.hash(req.body.password, 10, (err, hash) => {
+            if (err) {
+                res.status(500).send({
+                    message: err || "Some internal error occured while hashing the password"
                 });
             } else {
-                res.send({
-                    message: `Cannot update User with id=${id}. Maybe the User was not found or req.body is empty!`
-                });
+                // Create a Userobject
+                const user = {
+                    name: req.body.name,
+                    mail: req.body.mail,
+                    password: hash
+                }
+
+                // Update User in database
+                User.update(user, {
+                    where: { id: id }
+                })
+                    .then(num => {
+                        if (num == 1) {
+                            res.status(200).send({
+                                message: "User was updated successfully."
+                            });
+                        } else {
+                            res.status(404).send({
+                                message: `Cannot update User with id=${id}. ID not found.`
+                            });
+                        }
+                    })
+                    .catch(err => {
+                        res.status(500).send({
+                            message: "Error updating User with id=" + id
+                        });
+                    });
             }
-        })
-        .catch(err => {
-            res.status(500).send({
-                message: "Error updating User with id=" + id
-            });
         });
+    }
 };
 
 // Delete a User by id
@@ -123,12 +150,12 @@ exports.delete = (req, res) => {
     })
         .then(num => {
             if (num == 1) {
-                res.send({
+                res.status(200).send({
                     message: "User was deleted successfully!"
                 });
             } else {
-                res.send({
-                    message: `Cannot delete User with id=${id}. Maybe User was not found!`
+                res.status(404).send({
+                    message: `Cannot delete User with id=${id}. ID not found!`
                 });
             }
         })
@@ -146,7 +173,7 @@ exports.deleteAll = (req, res) => {
         truncate: false
     })
         .then(nums => {
-            res.send({ message: `${nums} Users were deleted successfully!`});
+            res.status(200).send({ message: `${nums} Users were deleted successfully!`});
         })
         .catch(err => {
             res.status(500).send({

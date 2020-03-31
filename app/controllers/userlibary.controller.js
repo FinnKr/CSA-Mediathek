@@ -30,7 +30,7 @@ exports.create = (req, res) => {
                         // Save Userlibaryentry in database
                         Userlibentry.create(userlibentry)
                         .then(data => {
-                            res.status(201).send(userlibentry);
+                            res.status(201).send(data);
                         })
                         .catch(err => {
                             res.status(500).send({
@@ -51,10 +51,6 @@ exports.findAll = (req, res) => {
     const name = req.query.name;
     var condition = name ? { name: { [Op.like]: `%${name}%` } } : null;
 
-    console.log("name:" + name);
-
-    
-
     Userlibentry.findAll({ where: {} })
         .then(userlibdata => {
 
@@ -65,7 +61,7 @@ exports.findAll = (req, res) => {
 
             Shopentry.findAll({ where: { [Op.and]: [ condition, { id: userlibshopids }] }})
                 .then(data => {
-                    res.send(data);
+                    res.status(200).send(data);
                 })
                 .catch(err => {
                     res.status(500).send({
@@ -95,7 +91,7 @@ exports.findOne = (req, res) => {
             } else {
                 Shopentry.findByPk(id)
                     .then(data => {
-                        res.send(data);
+                        res.status(200).send(data);
                     })
                     .catch(err => {
                         res.status(500).send({

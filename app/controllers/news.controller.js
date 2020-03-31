@@ -6,7 +6,7 @@ const Op = db.Sequelize.Op;
 exports.findAll = (req, res) => {
     News.findAll({ where: {} })
         .then(data => {
-            res.send(data);
+            res.status(200).send(data);
         })
         .catch(err => {
             res.status(500).send({
@@ -34,7 +34,7 @@ exports.create = (req, res) => {
     // Save News in database
     News.create(news)
         .then(data => {
-            res.send(data);
+            res.status(201).send(data);
         })
         .catch(err => {
             res.status(500).send({

@@ -23,7 +23,7 @@ exports.create = (req, res) => {
     // Save shop entry in database
     Shopentry.create(shopentry)
         .then(data => {
-            res.send(data);
+            res.status(201).send(data);
         })
         .catch(err => {
             res.status(500).send({
@@ -39,7 +39,7 @@ exports.findAll = (req, res) => {
 
     Shopentry.findAll({ where: condition })
         .then(data => {
-            res.send(data);
+            res.status(200).send(data);
         })
         .catch(err => {
             res.status(500).send({
@@ -53,9 +53,15 @@ exports.findAll = (req, res) => {
 exports.findOne = (req, res) => {
     const id = req.params.id;
 
-    Shopentry.findByPk(id)
+    Shopentry.findAll({ where: { id: id }})
         .then(data => {
-            res.send(data);
+            if (data.length < 1) {
+                res.status(404).send({
+                    message: "Shopentry with id: " + id + " does not exist"
+                });
+            } else {
+                res.status(200).send(data);
+            }
         })
         .catch(err => {
             res.status(500).send({
